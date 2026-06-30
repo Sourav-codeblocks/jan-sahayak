@@ -1,0 +1,6 @@
+pandas
+google-generativeai
+scikit-learn
+requests
+python-dotenv
+python-telegram-bot
