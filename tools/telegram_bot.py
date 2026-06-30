@@ -38,7 +38,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-RENDER_DEPLOYMENT = os.environ.get("RENDER_DEPLOYMENT", "False") == "True"
+RENDER_DEPLOYMENT = os.environ.get("RENDER_DEPLOYMENT", "False").strip().lower() == "true"
 PORT = int(os.environ.get("PORT", 10000))
 RENDER_EXTERNAL_URL = os.environ.get("RENDER_EXTERNAL_URL", "")
 
@@ -112,7 +112,9 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     logger.info(f"[text] from {user_id} (lang={detected_language}): {user_query}")
 
     async with TypingIndicator(context.bot, update.effective_chat.id):
-        result = agent_engine.handle_query(user_query, language=detected_language)
+        result = await asyncio.to_thread(
+            agent_engine.handle_query, user_query, language=detected_language, user_id=user_id
+        )
 
     backend_tag = f"\n\n_Answered by: {result['backend_used'] or 'verified local data'}_"
     await update.message.reply_text(result["answer"] + backend_tag, parse_mode="Markdown")
@@ -141,7 +143,9 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
         transcribed_text = stt.transcribe(audio_path)
         logger.info(f"[voice transcribed]: {transcribed_text}")
 
-        result = agent_engine.handle_query(transcribed_text, language=config.LANGUAGE_DEFAULT)
+        result = await asyncio.to_thread(
+            agent_engine.handle_query, transcribed_text, language=config.LANGUAGE_DEFAULT, user_id=user_id
+        )
 
     backend_tag = f"\n\n_Answered by: {result['backend_used'] or 'verified local data'}_"
     await update.message.reply_text(
@@ -156,11 +160,21 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 def main():
+    print(f"[DEBUG] Raw RENDER_DEPLOYMENT env value: {os.environ.get('RENDER_DEPLOYMENT', '<not set>')!r}")
+    print(f"[DEBUG] Parsed RENDER_DEPLOYMENT = {RENDER_DEPLOYMENT}")
+
     if not config.TELEGRAM_BOT_TOKEN:
         print("ERROR: TELEGRAM_BOT_TOKEN not set in .env. Get one from @BotFather.")
         sys.exit(1)
 
-    app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
+    app = (
+        Application.builder()
+        .token(config.TELEGRAM_BOT_TOKEN)
+        .read_timeout(60)
+        .write_timeout(60)
+        .connect_timeout(30)
+        .build()
+    )
 
     async def error_handler(update, context):
         print(f"[DEBUG] ERROR HANDLER FIRED: {context.error}")
