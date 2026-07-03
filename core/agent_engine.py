@@ -2,6 +2,7 @@
 core/agent_engine.py — The orchestrator (the "brain")
 
 Flow for every query:
+  0. Deterministic smalltalk gate (greetings/identity/thanks/unclear)
   1. Retrieve relevant scheme documents (deterministic, Layer 1)
   2. If nothing relevant found -> return safe fallback immediately,
      never call the LLM to "guess"
@@ -17,8 +18,41 @@ This is the deterministic skeleton + LLM at the edges principle in code.
 import config
 from core import retrieval, llm_connector, guardrails, logger, conversation_memory
 
+import json as _json
+import re as _re
 
-PROMPT_TEMPLATE = """You are Jan Sahayak, a helpful assistant for Indian farmers.
+# ---------------------------------------------------------------------
+# SMALLTALK GATE — deterministic, runs BEFORE retrieval.
+# Patterns and replies live in knowledge/smalltalk.json (data, not code),
+# same philosophy as the scheme KB. If the file is missing, the gate
+# quietly disables itself rather than crashing the bot.
+# ---------------------------------------------------------------------
+try:
+    with open("./knowledge/smalltalk.json", encoding="utf-8") as _f:
+        SMALLTALK = _json.load(_f)
+except (FileNotFoundError, _json.JSONDecodeError):
+    SMALLTALK = []
+
+UNCLEAR_REPLY = {
+    "hi": "Maaf kijiye, main samajh nahi paaya. Aise poochhiye — 'PM Kisan kya hai?' ya 'fasal bima kaise milega?'",
+    "en": "Sorry, I didn't catch that. Try: 'What is PM Kisan?' or 'How do I get crop insurance?'",
+}
+
+
+def check_smalltalk(query, lang):
+    """Returns a canned reply if query is smalltalk/unclear, else None."""
+    q = query.strip().lower()
+    # Gibberish / too short to be a real question
+    if len(_re.sub(r"[^a-z\u0900-\u097F]", "", q)) < 3:
+        return UNCLEAR_REPLY.get(lang, UNCLEAR_REPLY["en"])
+    for entry in SMALLTALK:
+        for p in entry["patterns"]:
+            if _re.search(p, q):
+                return entry.get(lang, entry["en"])
+    return None
+
+
+PROMPT_TEMPLATE = """You are Sprout, a helpful assistant for Indian farmers. If a user asks who you are, describe yourself as Sprout, the guide - Sprout is your only name.
 A farmer has asked a question. Below are the ONLY verified government scheme
 documents you may use to answer. Do not invent any scheme, amount, or rule
 that is not in these documents.
@@ -83,6 +117,20 @@ def handle_query(query: str, language: str = None, user_id=None) -> dict:
     language_name = LANGUAGE_NAMES.get(language, "English")
 
     previous = conversation_memory.get_last_exchange(user_id) if user_id else None
+
+    # Step 0 — Deterministic smalltalk gate (greetings/identity/thanks).
+    # Short/unclear queries only count as "unclear" when there's no
+    # conversation history — with history they're follow-ups, handled below.
+    smalltalk_reply = check_smalltalk(query, language)
+    if smalltalk_reply and not (previous and len(query.strip()) <= 6):
+        return {
+            "answer": smalltalk_reply,
+            "grounded": True,
+            "schemes_referenced": [],
+            "backend_used": "smalltalk",
+            "guardrail_results": None,
+            "fallback_used": False,
+        }
 
     # If the current query is very short, it's likely a follow-up rather
     # than a standalone question — widen retrieval by searching against

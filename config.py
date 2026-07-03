@@ -16,9 +16,20 @@ try:
 except ImportError:
     pass  # dotenv not installed yet — fall back to shell-exported vars
 
+
+# ---------------------------------------------------------------------
+# BRAND
+# ---------------------------------------------------------------------
+
+
+BOT_NAME = "Sprout"
+BOT_USERNAME = "@YourSprout_bot"
+
+
 # ---------------------------------------------------------------------
 # FEATURE SWITCHES
 # ---------------------------------------------------------------------
+
 
 VOICE_ENABLED = False          # Speech-to-text + text-to-speech pipeline
 SCRAPER_ENABLED = False        # Live web scraping fallback (Layer 2)
@@ -78,8 +89,8 @@ RAG_MIN_RELEVANCE = 0.04       # TF-IDF cosine score; below this, treat as "not 
 # ---------------------------------------------------------------------
 
 FALLBACK_NO_DATA_MESSAGE = {
-    "hi": "Maaf kijiye, mujhe iski pakki jaankari nahi hai. Apne block ya krishi vibhag office se sampark karein.",
-    "en": "Sorry, I don't have verified information on this. Please contact your local agriculture office.",
+    "hi": "Yeh mere kaam ke bahar hai, dost 🌱 Main sirf sarkari yojanaon mein madad kar sakta hoon. Kuch poochhna ho — jaise 'PM Kisan kya hai?' — toh main haazir hoon!",
+    "en": "That's outside my field, friend 🌱 I can only help with government schemes. Ask me anything there — like 'What is PM Kisan?' — and I'm all yours!",
     "ta": "மன்னிக்கவும், இதற்கான உறுதியான தகவல் என்னிடம் இல்லை. உங்கள் வட்டார வேளாண்மை அலுவலகத்தைத் தொடர்பு கொள்ளவும்.",
     "te": "క్షమించండి, దీని గురించి నాకు ధృవీకరించబడిన సమాచారం లేదు. దయచేసి మీ స్థానిక వ్యవసాయ కార్యాలయాన్ని సంప్రదించండి.",
 }

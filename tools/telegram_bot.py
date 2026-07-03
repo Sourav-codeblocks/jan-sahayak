@@ -44,10 +44,10 @@ RENDER_EXTERNAL_URL = os.environ.get("RENDER_EXTERNAL_URL", "")
 
 
 WELCOME_MESSAGE = (
-    "Namaste! Main Jan Sahayak hoon. Aap mujhse kisan yojanaon ke baare "
+    "🌱 Namaste! Main Sprout hoon. Aap mujhse kisan yojanaon ke baare "
     "mein Hindi ya English mein sawal pooch sakte hain — text ya voice "
     "message dono se.\n\n"
-    "Hello! I'm Jan Sahayak. Ask me about farmer schemes in Hindi or "
+    "🌱 Hello! I'm Sprout. Ask me about farmer schemes in Hindi or "
     "English — text or voice message both work."
 )
 
@@ -117,13 +117,15 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
 
     backend_tag = f"\n\n_Answered by: {result['backend_used'] or 'verified local data'}_"
-    await update.message.reply_text(result["answer"] + backend_tag, parse_mode="Markdown")
+    try:
+        await update.message.reply_text(result["answer"] + backend_tag, parse_mode="Markdown")
+    except Exception:
+        await update.message.reply_text(result["answer"] + backend_tag)
 
 
 async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     logger.info(f"[voice] from {user_id}")
-
     if not config.VOICE_ENABLED:
         await update.message.reply_text(
             "Voice message receive hua, lekin voice processing abhi off hai. "

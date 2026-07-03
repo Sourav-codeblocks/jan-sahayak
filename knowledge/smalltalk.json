@@ -1,0 +1,22 @@
+[
+  {
+    "patterns": ["^(hi|hii+|hello|hey|namaste|namaskar|ram ram)[\\s!.]*$"],
+    "hi": "🌱 Namaste! Main Sprout hoon. Kisan yojanaon ke baare mein kuch bhi poochhiye — jaise 'PM Kisan kya hai?'",
+    "en": "🌱 Hello! I'm Sprout. Ask me anything about farmer schemes — try 'What is PM Kisan?'"
+  },
+  {
+    "patterns": ["who are you", "tum kaun", "aap kaun", "kaun ho"],
+    "hi": "Main Sprout hoon — kisano ke liye sarkari yojanaon ka guide.",
+    "en": "I'm Sprout — a guide to government schemes for farmers."
+  },
+  {
+    "patterns": ["how are you", "kaise ho", "kya haal"],
+    "hi": "Main badhiya! Aap bataiye — kis yojana ke baare mein jaanna hai?",
+    "en": "I'm great! Which scheme would you like to know about?"
+  },
+  {
+    "patterns": ["thank", "dhanyawad", "shukriya"],
+    "hi": "Koi baat nahi! 🌱 Aur kuch poochhna ho toh zaroor bataiye.",
+    "en": "You're welcome! 🌱 Ask me anytime."
+  }
+]
