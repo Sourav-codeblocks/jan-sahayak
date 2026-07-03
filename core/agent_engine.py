@@ -42,13 +42,13 @@ UNCLEAR_REPLY = {
 def check_smalltalk(query, lang):
     """Returns a canned reply if query is smalltalk/unclear, else None."""
     q = query.strip().lower()
-    # Gibberish / too short to be a real question
-    if len(_re.sub(r"[^a-z\u0900-\u097F]", "", q)) < 3:
-        return UNCLEAR_REPLY.get(lang, UNCLEAR_REPLY["en"])
     for entry in SMALLTALK:
         for p in entry["patterns"]:
             if _re.search(p, q):
                 return entry.get(lang, entry["en"])
+    # Gibberish / too short — checked AFTER patterns so "hi" matches first
+    if len(_re.sub(r"[^a-z\u0900-\u097F]", "", q)) < 3:
+        return UNCLEAR_REPLY.get(lang, UNCLEAR_REPLY["en"])
     return None
 
 
